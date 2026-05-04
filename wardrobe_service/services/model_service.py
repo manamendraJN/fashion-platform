@@ -82,19 +82,26 @@ class ModelInference:
         """Load trained model from checkpoint (auto-downloads from HuggingFace if missing)"""
         model_path = self.model_config['path']
         
+        # if not model_path.exists():
+        #     # Auto-download from Hugging Face using model key
+        #     print(f"⬇️  Model not found locally, downloading from Hugging Face...")
+        #     try:
+        #         # Use model_name (key) to download the correct model
+        #         downloaded_path = hf_manager.download_model(self.model_name)
+        #         model_path = downloaded_path
+        #         print(f"✅ Model downloaded: {self.model_name}")
+        #     except Exception as e:
+        #         raise FileNotFoundError(
+        #             f"Failed to download model: {e}\n"
+        #             f"Please check Hugging Face repository: {hf_manager.HF_REPO_ID}"
+        #         )
+
+        #disable the model downloading part
         if not model_path.exists():
-            # Auto-download from Hugging Face using model key
-            print(f"⬇️  Model not found locally, downloading from Hugging Face...")
-            try:
-                # Use model_name (key) to download the correct model
-                downloaded_path = hf_manager.download_model(self.model_name)
-                model_path = downloaded_path
-                print(f"✅ Model downloaded: {self.model_name}")
-            except Exception as e:
-                raise FileNotFoundError(
-                    f"Failed to download model: {e}\n"
-                    f"Please check Hugging Face repository: {hf_manager.HF_REPO_ID}"
-                )
+            raise FileNotFoundError(
+                f"Model file not found: {model_path}\n"
+                f"Downloading is disabled. Please place the model manually."
+            )
         
         # Load checkpoint
         checkpoint = torch.load(model_path, map_location=self.device)
@@ -130,24 +137,31 @@ class ModelInference:
         # Fallback: try to load from normalization_stats.json
         stats_path = Config.MODEL_DIR / 'normalization_stats.json'
         
+        # if not stats_path.exists():
+        #     # Try auto-download from Hugging Face
+        #     print("⬇️  normalization_stats.json not found, downloading...")
+        #     try:
+        #         stats = hf_manager.load_normalization_stats()
+        #         self.target_mean = torch.FloatTensor(stats['target_mean']).to(self.device)
+        #         self.target_std = torch.FloatTensor(stats['target_std']).to(self.device)
+        #         print("✅ Normalization stats loaded from Hugging Face")
+        #         return
+        #     except Exception as e:
+        #         print(f"⚠️ Could not load normalization stats: {e}")
+        # else:
+        #     # Load from local file
+        #     with open(stats_path, 'r') as f:
+        #         stats = json.load(f)
+        #     self.target_mean = torch.FloatTensor(stats['target_mean']).to(self.device)
+        #     self.target_std = torch.FloatTensor(stats['target_std']).to(self.device)
+        #     return
+
+        #stop downloading normalization_stats.json file
         if not stats_path.exists():
-            # Try auto-download from Hugging Face
-            print("⬇️  normalization_stats.json not found, downloading...")
-            try:
-                stats = hf_manager.load_normalization_stats()
-                self.target_mean = torch.FloatTensor(stats['target_mean']).to(self.device)
-                self.target_std = torch.FloatTensor(stats['target_std']).to(self.device)
-                print("✅ Normalization stats loaded from Hugging Face")
-                return
-            except Exception as e:
-                print(f"⚠️ Could not load normalization stats: {e}")
-        else:
-            # Load from local file
-            with open(stats_path, 'r') as f:
-                stats = json.load(f)
-            self.target_mean = torch.FloatTensor(stats['target_mean']).to(self.device)
-            self.target_std = torch.FloatTensor(stats['target_std']).to(self.device)
-            return
+            print("⚠️ normalization_stats.json not found. Using default values.")
+            self.target_mean = torch.zeros(len(Config.MEASUREMENT_COLUMNS)).to(self.device)
+            self.target_std = torch.ones(len(Config.MEASUREMENT_COLUMNS)).to(self.device)
+        return
         
         # Default values (not recommended, should have proper stats)
         print("⚠️ Warning: Using default normalization (may affect accuracy)")
