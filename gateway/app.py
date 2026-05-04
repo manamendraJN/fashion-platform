@@ -8,15 +8,15 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:3000", "*"]}},
      supports_credentials=True)
 
-# ── Service registry ──────────────────────────────────────────────────────────
+# ── Service registry ──
 SERVICES = {
-    "bodyfit":     "http://127.0.0.1:5002",   # Main AI / measurement service
+    "bodyfit":     "http://127.0.0.1:5002",  
     "wardrobe":    "http://127.0.0.1:5004",
     "accessories": "http://127.0.0.1:5001",
     "grooming":    "http://127.0.0.1:5003",
 }
 
-# ── Routes that live directly on the bodyfit service (no /api/bodyfit prefix) ─
+# ── Routes that live directly on the bodyfit service
 BODYFIT_DIRECT_ROUTES = {
     "/health",
     "/model-info",
@@ -26,10 +26,7 @@ BODYFIT_DIRECT_ROUTES = {
     "/switch-model",
 }
 
-# ── Accessories service routes (must be checked BEFORE wardrobe prefixes) ─────
-# These are the unique routes on accessories service (port 5001).
-# /api/wardrobe and /api/analytics are ALSO used by accessories — we distinguish
-# them via the more-specific prefixes listed here, checked first.
+# ── Accessories service routes 
 ACCESSORIES_EXACT_ROUTES = {
     "/api/classify-accessory",
     "/api/extract-dress-attributes",
@@ -42,29 +39,20 @@ ACCESSORIES_EXACT_ROUTES = {
     "/api/looks",
 }
 
-# Conflicting routes shared between accessories and wardrobe.
-# We scope them under /api/accessories/... on the GATEWAY side so the frontend
-# can disambiguate. The gateway then strips the /api/accessories prefix and
-# forwards the rest to port 5001.
-#   Frontend → Gateway              Gateway → Accessories (:5001)
-#   /api/accessories/wardrobe   →   /api/wardrobe
-#   /api/accessories/analytics  →   /api/analytics
+
 ACCESSORIES_SCOPED_PREFIX = "/api/accessories"
 
-# ── Wardrobe service routes (blueprint uses full hardcoded paths, forward as-is) ─
+# ── Wardrobe service routes 
 WARDROBE_FULL_PATH_PREFIXES = (
-    "/api/wardrobe",        # GET /api/wardrobe, POST /api/wardrobe/<id>/..., DELETE, etc.
-    "/api/predict/",        # POST /api/predict/clothing-type
-    "/api/analytics",       # GET /api/analytics  ← wardrobe owns this at root level
-    "/api/recommend-smart", # POST /api/recommend-smart
-    "/api/user-profile",    # GET /api/user-profile
-    "/api/outfit-pairing/", # GET /api/outfit-pairing/<id>
-    "/uploads/",            # Serve uploaded images
+    "/api/wardrobe",        
+    "/api/predict/",        
+    "/api/analytics",       
+    "/api/recommend-smart", 
+    "/api/user-profile",    
+    "/api/outfit-pairing/", 
+    "/uploads/",            
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Helper
-# ─────────────────────────────────────────────────────────────────────────────
 def _proxy(target_url, method, headers, data, params, files=None):
     """Forward request and stream response back."""
     try:
@@ -114,10 +102,7 @@ def _collect_files():
         )
     return files or None
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 1.  Direct bodyfit routes  (no service prefix in URL)
-# ─────────────────────────────────────────────────────────────────────────────
+# 1.  Direct bodyfit routes 
 @app.route("/health", methods=["GET"])
 def health():
     try:
@@ -152,14 +137,7 @@ def catch_all(path):
         return _proxy(target, request.method, request.headers,
                       request.get_data(), request.args, files)
 
-    # ── 2a. Accessories — scoped conflict routes ──────────────────────────────
-    # Frontend uses /api/accessories/wardrobe and /api/accessories/analytics
-    # to reach accessories service for those conflicting endpoints.
-    # Gateway strips /api/accessories and forwards the rest to :5001.
-    #
-    #   /api/accessories/wardrobe     →  http://127.0.0.1:5001/api/wardrobe
-    #   /api/accessories/analytics    →  http://127.0.0.1:5001/api/analytics
-    #   /api/accessories/analytics/x  →  http://127.0.0.1:5001/api/analytics/x
+    # ── 2a. Accessories — scoped conflict routes 
     if full_path.startswith(ACCESSORIES_SCOPED_PREFIX + "/"):
         # Strip /api/accessories, keep everything after it
         rest = full_path[len(ACCESSORIES_SCOPED_PREFIX):]   # e.g. /wardrobe or /analytics/foo
@@ -168,15 +146,7 @@ def catch_all(path):
         return _proxy(target, request.method, request.headers,
                       request.get_data(), request.args, files)
 
-    # ── 2b. Accessories — unique exact-prefix routes ──────────────────────────
-    # These routes exist ONLY on the accessories service, no conflict.
-    # Checked before wardrobe so /api/recommend doesn't accidentally fall
-    # through to the wardrobe /api/recommend-smart prefix check.
-    #
-    #   /api/classify-accessory   →  http://127.0.0.1:5001/api/classify-accessory
-    #   /api/recommend            →  http://127.0.0.1:5001/api/recommend
-    #   /api/chat                 →  http://127.0.0.1:5001/api/chat
-    #   ... etc.
+    # ── 2b. Accessories — unique exact-prefix routes
     if any(full_path == route or full_path.startswith(route + "/")
            for route in ACCESSORIES_EXACT_ROUTES):
         target = f"{SERVICES['accessories']}{full_path}"
@@ -184,17 +154,13 @@ def catch_all(path):
         return _proxy(target, request.method, request.headers,
                       request.get_data(), request.args, files)
 
-    # ── 3.  Wardrobe service — full hardcoded paths, forward as-is ───────────
-    # /api/wardrobe and /api/analytics at the root level go to wardrobe (:5004).
-    # Accessories versions of these must use /api/accessories/... (step 2a above).
+
     if any(full_path.startswith(prefix) for prefix in WARDROBE_FULL_PATH_PREFIXES):
         target = f"{SERVICES['wardrobe']}{full_path}"
         files = _collect_files() if request.files else None
         return _proxy(target, request.method, request.headers,
                       request.get_data(), request.args, files)
 
-    # ── 4.  Named service routes  /api/<service>/... ─────────────────────────
-    #    e.g. /api/grooming/...  →  http://127.0.0.1:5003/<rest>
     parts = full_path.lstrip("/").split("/", 2)   # ['api', 'service', 'rest']
     if len(parts) >= 2 and parts[0] == "api":
         service = parts[1]
