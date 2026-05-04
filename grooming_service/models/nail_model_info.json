@@ -1,0 +1,16 @@
+{
+  "model": "MobileNetV2",
+  "class_names": [
+    "beau_s_line",
+    "black_line",
+    "clubbing",
+    "healthy",
+    "mees_line",
+    "onycholysis",
+    "terry_s_nail",
+    "white_spot"
+  ],
+  "num_classes": 8,
+  "best_accuracy": 0.6930692791938782,
+  "image_size": 224
+}
