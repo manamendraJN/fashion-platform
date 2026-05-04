@@ -1,0 +1,32 @@
+{
+  "occasions": [
+    "Casual",
+    "Formal",
+    "Party",
+    "Wedding",
+    "Festive/Religious",
+    "Sports",
+    "Beach",
+    "Date Night",
+    "Office",
+    "Interview"
+  ],
+  "religions": [
+    "None",
+    "Buddhist",
+    "Hindu",
+    "Muslim",
+    "Christian",
+    "Other"
+  ],
+  "genders": [
+    "Men",
+    "Women",
+    "Unisex"
+  ],
+  "budget_min": 0,
+  "budget_max": 50000,
+  "metadata_dim": 20,
+  "dress_feat_dim": 79,
+  "fused_output_dim": 256
+}

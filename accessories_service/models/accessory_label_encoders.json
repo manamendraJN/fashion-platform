@@ -1,0 +1,66 @@
+{
+  "categories": [
+    "Belts",
+    "Bracelets & Bangles",
+    "Cufflinks",
+    "Earrings",
+    "Handbags & Clutches",
+    "Hats & Headwear",
+    "Necklaces & Chains",
+    "Rings",
+    "Scarves & Shawls",
+    "Sunglasses & Eyewear",
+    "Ties",
+    "Watches"
+  ],
+  "genders": [
+    "Men",
+    "Unisex",
+    "Women"
+  ],
+  "colors": [
+    "Beige",
+    "Black",
+    "Blue",
+    "Brown",
+    "Burgundy",
+    "Coffee",
+    "Copper",
+    "Gold",
+    "Green",
+    "Grey",
+    "Maroon",
+    "Metallic",
+    "Multi-color",
+    "Navy Blue",
+    "Nude",
+    "Off White",
+    "Orange",
+    "Pink",
+    "Purple",
+    "Red",
+    "Silver",
+    "Tan",
+    "Teal",
+    "White",
+    "Yellow"
+  ],
+  "seasons": [
+    "Fall",
+    "Spring",
+    "Summer",
+    "Winter"
+  ],
+  "usages": [
+    "Casual",
+    "Festive/Religious",
+    "Formal",
+    "Party",
+    "Sports"
+  ],
+  "num_categories": 12,
+  "num_genders": 3,
+  "num_colors": 25,
+  "num_seasons": 4,
+  "num_usages": 5
+}

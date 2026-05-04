@@ -1,0 +1,129 @@
+{
+  "color": {
+    "classes": [
+      "Beige",
+      "Black",
+      "Blue",
+      "Brown",
+      "Burgundy",
+      "Coffee",
+      "Copper",
+      "Gold",
+      "Green",
+      "Grey",
+      "Maroon",
+      "Multi-color",
+      "Navy Blue",
+      "Nude",
+      "Off White",
+      "Orange",
+      "Pink",
+      "Purple",
+      "Red",
+      "Silver",
+      "Tan",
+      "Teal",
+      "White",
+      "Yellow"
+    ],
+    "num_classes": 24
+  },
+  "neckline": {
+    "classes": [
+      "Boat Neck",
+      "Collared",
+      "Cowl Neck",
+      "Crew Neck",
+      "Halter",
+      "High Neck",
+      "Keyhole",
+      "Mock Neck",
+      "Off-Shoulder",
+      "One-Shoulder",
+      "Scoop Neck",
+      "Square Neck",
+      "Sweetheart",
+      "Turtleneck",
+      "V-Neck"
+    ],
+    "num_classes": 15
+  },
+  "dress_length": {
+    "classes": [
+      "Floor-length",
+      "Knee-length",
+      "Maxi",
+      "Midi",
+      "Mini"
+    ],
+    "num_classes": 5
+  },
+  "fabric": {
+    "classes": [
+      "Chiffon",
+      "Cotton",
+      "Crepe",
+      "Denim",
+      "Lace",
+      "Leather",
+      "Linen",
+      "Polyester",
+      "Satin",
+      "Silk",
+      "Wool"
+    ],
+    "num_classes": 11
+  },
+  "pattern": {
+    "classes": [
+      "Abstract",
+      "Animal Print",
+      "Floral",
+      "Geometric",
+      "Paisley",
+      "Plaid",
+      "Polka Dot",
+      "Solid",
+      "Striped"
+    ],
+    "num_classes": 9
+  },
+  "sleeve_length": {
+    "classes": [
+      "3/4 Sleeve",
+      "Bell Sleeve",
+      "Cap Sleeve",
+      "Long Sleeve",
+      "Short Sleeve",
+      "Sleeveless"
+    ],
+    "num_classes": 6
+  },
+  "usage": {
+    "classes": [
+      "Casual",
+      "Festive/Religious",
+      "Formal",
+      "Party",
+      "Sports"
+    ],
+    "num_classes": 5
+  },
+  "season": {
+    "classes": [
+      "Fall",
+      "Spring",
+      "Summer",
+      "Winter"
+    ],
+    "num_classes": 4
+  },
+  "gender": {
+    "classes": [
+      "Men",
+      "Unisex",
+      "Women"
+    ],
+    "num_classes": 3
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "model_name": "MultimodalFusionTransformer",
+  "architecture": "MLP with Cross-Attention Gating + Residual (99\u2192512\u2192512\u2192256\u2192256)",
+  "input": {
+    "dress_features_dim": 79,
+    "metadata_dim": 20,
+    "total_input_dim": 99
+  },
+  "output": {
+    "fused_vector_dim": 256,
+    "compatibility_score": "0-1 (sigmoid)"
+  },
+  "model_config": {
+    "hidden_layers": [
+      512,
+      512,
+      256,
+      256
+    ],
+    "activation": "LeakyReLU(0.1)",
+    "dropout": [
+      0.3,
+      0.3,
+      0.2
+    ],
+    "output_dim": 256
+  },
+  "user_metadata_schema": {
+    "occasions": [
+      "Casual",
+      "Formal",
+      "Party",
+      "Wedding",
+      "Festive/Religious",
+      "Sports",
+      "Beach",
+      "Date Night",
+      "Office",
+      "Interview"
+    ],
+    "religions": [
+      "None",
+      "Buddhist",
+      "Hindu",
+      "Muslim",
+      "Christian",
+      "Other"
+    ],
+    "genders": [
+      "Men",
+      "Women",
+      "Unisex"
+    ],
+    "budget_range": "Rs. 0 - Rs. 50000"
+  },
+  "best_epoch": 38,
+  "best_val_loss": 2e-05,
+  "best_val_mae": 0.0033,
+  "best_val_r2": 0.9980999827384949,
+  "training_config": {
+    "epochs": 200,
+    "batch_size": 512,
+    "optimizer": "Adam",
+    "lr": 0.001,
+    "early_stopping": 20,
+    "training_pairs": 80000
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "model_name": "AccessoryClassifier_ResNet152",
+  "architecture": "ResNet-152 Multi-Head (2-Stage Fine-tuned)",
+  "input_size": [
+    224,
+    224,
+    3
+  ],
+  "num_categories": 12,
+  "num_genders": 3,
+  "num_colors": 25,
+  "num_seasons": 4,
+  "num_usages": 5,
+  "category_classes": [
+    "Belts",
+    "Bracelets & Bangles",
+    "Cufflinks",
+    "Earrings",
+    "Handbags & Clutches",
+    "Hats & Headwear",
+    "Necklaces & Chains",
+    "Rings",
+    "Scarves & Shawls",
+    "Sunglasses & Eyewear",
+    "Ties",
+    "Watches"
+  ],
+  "gender_classes": [
+    "Men",
+    "Unisex",
+    "Women"
+  ],
+  "color_classes": [
+    "Beige",
+    "Black",
+    "Blue",
+    "Brown",
+    "Burgundy",
+    "Coffee",
+    "Copper",
+    "Gold",
+    "Green",
+    "Grey",
+    "Maroon",
+    "Metallic",
+    "Multi-color",
+    "Navy Blue",
+    "Nude",
+    "Off White",
+    "Orange",
+    "Pink",
+    "Purple",
+    "Red",
+    "Silver",
+    "Tan",
+    "Teal",
+    "White",
+    "Yellow"
+  ],
+  "season_classes": [
+    "Fall",
+    "Spring",
+    "Summer",
+    "Winter"
+  ],
+  "usage_classes": [
+    "Casual",
+    "Festive/Religious",
+    "Formal",
+    "Party",
+    "Sports"
+  ],
+  "best_epoch": 21,
+  "best_val_category_accuracy": 98.71,
+  "training_config": {
+    "stage1_epochs": 10,
+    "stage2_epochs": 15,
+    "batch_size": 32,
+    "optimizer": "AdamW",
+    "stage1_lr": 0.001,
+    "stage2_backbone_lr": 1e-05,
+    "stage2_heads_lr": 5e-05,
+    "early_stopping_patience": 7
+  },
+  "dataset": {
+    "name": "Kaggle Fashion Product Images",
+    "total_training_samples": 6818,
+    "total_validation_samples": 852,
+    "total_test_samples": 853,
+    "total_balanced_samples": 8523,
+    "min_samples_per_category": 150
+  },
+  "loss_weights": {
+    "category": 2.0,
+    "gender": 1.0,
+    "color": 1.5,
+    "season": 0.8,
+    "usage": 1.0
+  }
+}

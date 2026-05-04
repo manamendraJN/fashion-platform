@@ -1,0 +1,56 @@
+{
+  "model_name": "DuelingDQN_AccessoryRecommender",
+  "architecture": "Dueling DQN with Dot-Product Action Scoring",
+  "input": {
+    "state_dim": 404,
+    "fused_vector_dim": 256,
+    "accessory_dim": 49
+  },
+  "output": {
+    "top_k": 3,
+    "q_values": "8523 accessories"
+  },
+  "dqn_config": {
+    "query_dim": 128,
+    "gamma": 0.99,
+    "epsilon_start": 1.0,
+    "epsilon_end": 0.05,
+    "epsilon_decay": 0.9995,
+    "buffer_size": 100000,
+    "batch_size": 128,
+    "target_update": 10
+  },
+  "wardrobe": {
+    "total_accessories": 8523,
+    "categories": [
+      "Belts",
+      "Bracelets & Bangles",
+      "Cufflinks",
+      "Earrings",
+      "Handbags & Clutches",
+      "Hats & Headwear",
+      "Necklaces & Chains",
+      "Rings",
+      "Scarves & Shawls",
+      "Sunglasses & Eyewear",
+      "Ties",
+      "Watches"
+    ],
+    "feature_dim": 49
+  },
+  "best_episode": 1988,
+  "best_avg_reward": 2.3868,
+  "evaluation": {
+    "avg_total_reward": 2.4914,
+    "avg_diversity": 1.0,
+    "avg_color_match": 0.848,
+    "avg_occasion_match": 0.6673
+  },
+  "training_config": {
+    "total_episodes": 2000,
+    "warmup_episodes": 200,
+    "learning_rate": 0.0001,
+    "optimizer": "Adam",
+    "loss": "SmoothL1 (Huber)"
+  }
+}
