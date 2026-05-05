@@ -3,6 +3,7 @@ import requests
 from flask_cors import CORS
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024  # 32 MB
 
 # CORS - Allow frontend
 CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:3000", "*"]}},
