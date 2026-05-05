@@ -1,0 +1,34 @@
+{
+  "nail": {
+    "class_names": [
+      "beau_s_line",
+      "black_line",
+      "clubbing",
+      "healthy",
+      "mees_line",
+      "onycholysis",
+      "terry_s_nail",
+      "white_spot"
+    ],
+    "num_classes": 8,
+    "accuracy": 0.6930692791938782,
+    "image_size": 224,
+    "model_file": "nail_model.keras"
+  },
+  "dental": {
+    "class_names": [
+      "Calculus",
+      "Gingivitis",
+      "Mouth Ulcer",
+      "Tooth Discoloration",
+      "Yellow teeth",
+      "caries",
+      "healthy",
+      "hypodontia"
+    ],
+    "num_classes": 8,
+    "accuracy": 0.8048780560493469,
+    "image_size": 224,
+    "model_file": "dental_model.keras"
+  }
+}
