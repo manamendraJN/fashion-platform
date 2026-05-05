@@ -11,6 +11,10 @@ import { WardrobeProvider } from './context/WardrobeContext';
 import { WardrobePage }  from './pages/AccWardrobe';
 import { DiscoverPage }  from './pages/AccDiscover';
 import { AccAnalyticsPage } from './pages/AccAnalytics';
+import { SkinAnalysis }  from './pages/SkinAnalysis';
+import { HairGeneration } from './components/HairGeneration';
+import { NailCare }      from './components/NailCare';
+import { DentalHygiene } from './components/DentalHygiene';
 
 function App() {
   return (
@@ -28,6 +32,11 @@ function App() {
           <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/wardrobe"  element={<WardrobePage />} />
           <Route path="/accanalytics" element={<AccAnalyticsPage />} />
+
+          <Route path="/grooming"        element={<SkinAnalysis />} />
+          <Route path="/hair-generation" element={<HairGeneration />} />
+          <Route path="/nail-care"       element={<NailCare />} />
+          <Route path="/dental-hygiene"  element={<DentalHygiene />} />
       </Routes>
     </Router>
     </WardrobeProvider>

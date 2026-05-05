@@ -1,0 +1,22 @@
+{
+  "model": "MobileNetV2_v2",
+  "task": "Dental Hygiene Classification",
+  "version": 2,
+  "class_names": [
+    "Calculus",
+    "Gingivitis",
+    "Mouth Ulcer",
+    "Tooth Discoloration",
+    "Yellow teeth",
+    "caries",
+    "healthy",
+    "hypodontia"
+  ],
+  "num_classes": 8,
+  "best_accuracy": 0.8048780560493469,
+  "best_top3": 0.9790940880775452,
+  "has_healthy_class": true,
+  "image_size": 224,
+  "training_samples": 1151,
+  "validation_samples": 287
+}
