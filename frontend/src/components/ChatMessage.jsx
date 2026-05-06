@@ -7,7 +7,8 @@ import { ItemCard } from './ItemCard';
 export function ChatMessage({ role, content, suggestions, timestamp, onTypeUpdate }) {
   const isUser = role === 'user';
 
-  const [localSuggestions, setLocalSuggestions] = useState(suggestions || []);
+  // ✅ CHANGED: limit to 4 at source
+  const [localSuggestions, setLocalSuggestions] = useState((suggestions || []).slice(0, 4));
   const [pairingResults, setPairingResults] = useState(null);
   const [isMarkingPair, setIsMarkingPair] = useState(false);
   const [selectedPairingItem, setSelectedPairingItem] = useState(null);
@@ -114,13 +115,23 @@ export function ChatMessage({ role, content, suggestions, timestamp, onTypeUpdat
     });
   };
 
+  // ✅ CHANGED: strip event tag so "Tamil Wedding 85%" pill is hidden on cards
+  const stripEventTag = (item) => ({
+    ...item,
+    eventScores: {},
+    best_event: '',
+    bestEvent: '',
+    usage: '',
+  });
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn('flex w-full mb-8', isUser ? 'justify-end' : 'justify-start')}
     >
-      <div className={cn('flex max-w-[85%] md:max-w-[75%]', isUser ? 'flex-row-reverse' : 'flex-row')}>
+      {/* ✅ CHANGED: assistant messages take full width so card grid has space */}
+      <div className={cn('flex', isUser ? 'flex-row-reverse max-w-[85%] md:max-w-[75%]' : 'flex-row w-full')}>
         {/* Avatar */}
         <div
           className={cn(
@@ -151,24 +162,24 @@ export function ChatMessage({ role, content, suggestions, timestamp, onTypeUpdat
             {timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
 
-          {/* Suggestions grid */}
+          {/* ✅ CHANGED: 2 cols → 4 cols max, bigger cards, no 5-col cramping */}
           {localSuggestions?.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-w-5xl"
+              className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl"
             >
               {localSuggestions.map((item, idx) => (
                 <div key={item.id} className="relative">
                   <ItemCard
-                    item={item}
+                    item={stripEventTag(item)}   // ✅ hides redundant event tag
                     index={idx}
                     showWearHistory={true}
                     onMarkWorn={handleMarkWorn}
-                    onFindPair={handleFindPair}
+                    onFindPair={handleFindPair}  // ✅ Pair button still wired
                     onTypeUpdate={handleTypeUpdate}
-                    compact={true}
+                    compact={true}               // keep compact=true (same as original that worked)
                   />
                   {item.suitabilityScore && (
                     <div className="absolute -top-1.5 -right-1.5 bg-[#8B5A5A] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md z-10">
@@ -180,7 +191,7 @@ export function ChatMessage({ role, content, suggestions, timestamp, onTypeUpdat
             </motion.div>
           )}
 
-          {/* Pairing results panel */}
+          {/* Pairing results panel — exactly same as original */}
           {pairingResults && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -214,7 +225,7 @@ export function ChatMessage({ role, content, suggestions, timestamp, onTypeUpdat
                       Selected
                     </p>
                     <ItemCard
-                      item={pairingResults.selectedItem}
+                      item={stripEventTag(pairingResults.selectedItem)}
                       showWearHistory={false}
                       onTypeUpdate={handleTypeUpdate}
                       compact={true}
@@ -237,7 +248,12 @@ export function ChatMessage({ role, content, suggestions, timestamp, onTypeUpdat
                         <p className="text-[9px] font-semibold text-[#7A9B8E] uppercase tracking-wider text-center">
                           Match {idx + 1}
                         </p>
-                        <ItemCard item={match} showWearHistory={false} onTypeUpdate={handleTypeUpdate} compact={true} />
+                        <ItemCard
+                          item={stripEventTag(match)}
+                          showWearHistory={false}
+                          onTypeUpdate={handleTypeUpdate}
+                          compact={true}
+                        />
                         <button
                           onClick={() => handleMarkPairAsWorn(match)}
                           disabled={isMarkingPair}
@@ -256,9 +272,4 @@ export function ChatMessage({ role, content, suggestions, timestamp, onTypeUpdat
       </div>
     </motion.div>
   );
-}
-
-// Placeholder wrapper (replace with real AnimatePresence from framer-motion later if needed)
-function AnimatePresencePairing({ children }) {
-  return <>{children}</>;
 }

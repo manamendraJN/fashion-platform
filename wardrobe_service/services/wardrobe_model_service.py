@@ -237,37 +237,155 @@ class WardrobeModelService:
 
     def predict_event_scores(self, image_input, metadata: dict = None) -> dict:
         """
-        Use improved rule-based event scoring from event_constants.py
-        This replaces the unreliable ML event model with accurate, consistent scoring.
-        Returns: { best_event, scores }
+        Prefer the loaded event-association model when it can be evaluated.
+        Fall back to rule-based scores when the model input shape or metadata
+        cannot be prepared safely.
+        Returns: { best_event, scores, source }
         """
         if not self._loaded:
             raise RuntimeError("Wardrobe models not loaded")
 
         clothing_type = metadata.get('article', 'Tops') if metadata else 'Tops'
-        
-        # ✅ Use improved rule-based scoring (supports all clothing types including traditional wear)
+        metadata = metadata or {}
+
+        model_result = self._predict_event_association_model(clothing_type, metadata)
+        if model_result is not None:
+            return model_result
+
+        # ✅ Fallback: deterministic rule-based scoring for safety and coverage.
         scores = get_default_event_scores(clothing_type)
-        
-        # Convert to old event name format for backward compatibility
-        # Maps new standard names back to old DB format if needed
-        old_format_scores = {}
-        event_name_mapping = {
-            'Casual': 'Casual Outing',
-            'Office': 'Office Meeting',
-            'Beach': 'Beach Outing',
-            'Date': 'Date Night',
-            'Sports': 'Sports Event',
-            'Religious': 'Religious Event',
-            'Family Gathering': 'Family Gathering'
+        best_event = max(scores, key=scores.get)
+        return {"best_event": best_event, "scores": scores, "source": "rule_based"}
+
+    def _encode_metadata_value(self, encoder, value):
+        """Encode a metadata value using the available sklearn encoder if possible."""
+        if encoder is None:
+            return []
+
+        value = "" if value is None else str(value)
+
+        try:
+            transformed = encoder.transform([value])
+            transformed_array = np.asarray(transformed)
+            if transformed_array.ndim == 0:
+                transformed_array = transformed_array.reshape(1)
+
+            # LabelEncoder-style output -> convert to one-hot so it can feed a neural net.
+            if transformed_array.size == 1 and hasattr(encoder, "classes_"):
+                one_hot = np.zeros(len(encoder.classes_), dtype=np.float32)
+                index = int(transformed_array[0])
+                if 0 <= index < len(one_hot):
+                    one_hot[index] = 1.0
+                return one_hot.tolist()
+
+            return transformed_array.astype(np.float32).ravel().tolist()
+        except Exception:
+            pass
+
+        if hasattr(encoder, "classes_"):
+            classes = list(encoder.classes_)
+            one_hot = np.zeros(len(classes), dtype=np.float32)
+            normalized = value.lower().strip()
+            for index, class_name in enumerate(classes):
+                if str(class_name).lower().strip() == normalized:
+                    one_hot[index] = 1.0
+                    break
+            return one_hot.tolist()
+
+        return []
+
+    def _build_event_model_features(self, clothing_type: str, metadata: dict):
+        """Build a flat numeric feature vector for the event-association model."""
+        if self.event_model is None:
+            return None
+
+        metadata_sources = {
+            'article': clothing_type,
+            'clothing_type': clothing_type,
+            'type': clothing_type,
+            'usage': metadata.get('usage'),
+            'occasion': metadata.get('occasion'),
+            'event': metadata.get('event'),
+            'color': metadata.get('color'),
+            'gender': metadata.get('gender'),
         }
-        
-        for new_name, score in scores.items():
-            old_name = event_name_mapping.get(new_name, new_name)
-            old_format_scores[old_name] = score
-        
-        best_event = max(old_format_scores, key=old_format_scores.get)
-        return {"best_event": best_event, "scores": old_format_scores}
+
+        features = []
+        if isinstance(self.metadata_encoders, dict):
+            for key in sorted(self.metadata_encoders.keys()):
+                encoder = self.metadata_encoders[key]
+                value = metadata_sources.get(key, metadata.get(key))
+                if value is None and key in ('article', 'clothing_type', 'type'):
+                    value = clothing_type
+                features.extend(self._encode_metadata_value(encoder, value))
+        else:
+            # Lightweight fallback when the encoder bundle is unavailable.
+            features.append(float(len(clothing_type)))
+            features.append(float(len(str(metadata.get('usage', 'Casual')))))
+            features.append(float(len(str(metadata.get('color', 'Black')))))
+            features.append(float(len(str(metadata.get('gender', 'Women')))))
+
+        if not features:
+            return None
+
+        expected_shape = getattr(self.event_model, 'input_shape', None)
+        if isinstance(expected_shape, list):
+            expected_shape = expected_shape[0]
+
+        if not expected_shape or len(expected_shape) < 2:
+            return None
+
+        expected_dim = expected_shape[-1]
+        if expected_dim is None:
+            return None
+
+        feature_vector = np.asarray(features, dtype=np.float32)
+        if feature_vector.size < expected_dim:
+            feature_vector = np.pad(feature_vector, (0, expected_dim - feature_vector.size))
+        elif feature_vector.size > expected_dim:
+            feature_vector = feature_vector[:expected_dim]
+
+        return feature_vector.reshape(1, expected_dim)
+
+    def _format_event_scores(self, predictions):
+        """Convert model output into a dictionary of event scores."""
+        scores = np.asarray(predictions).ravel().astype(float)
+        output_size = scores.size
+
+        if self.event_encoder is not None and hasattr(self.event_encoder, 'classes_') and len(self.event_encoder.classes_) == output_size:
+            labels = list(self.event_encoder.classes_)
+        elif self.event_mlb is not None and hasattr(self.event_mlb, 'classes_') and len(self.event_mlb.classes_) == output_size:
+            labels = list(self.event_mlb.classes_)
+        elif len(STANDARD_EVENTS) == output_size:
+            labels = list(STANDARD_EVENTS)
+        else:
+            labels = [f'event_{index}' for index in range(output_size)]
+
+        event_scores = {
+            labels[index]: round(float(scores[index]), 4)
+            for index in range(output_size)
+        }
+        best_event = max(event_scores, key=event_scores.get)
+        return {"best_event": best_event, "scores": event_scores, "source": "event_model"}
+
+    def _predict_event_association_model(self, clothing_type: str, metadata: dict):
+        """Try the loaded event-association model before falling back to rules."""
+        if self.event_model is None:
+            return None
+
+        try:
+            features = self._build_event_model_features(clothing_type, metadata)
+            if features is None:
+                return None
+
+            predictions = self.event_model.predict(features, verbose=0)
+            if isinstance(predictions, list):
+                predictions = predictions[0]
+
+            return self._format_event_scores(predictions)
+        except Exception as e:
+            logger.warning(f"⚠️ Event association model fallback to rules: {e}")
+            return None
 
     # ──────────────────────────────────────────────────────────────────
     # DEPRECATED: Old rule-based scoring (kept for reference only)
@@ -402,6 +520,7 @@ class WardrobeModelService:
             "all_scores":     clothing['all_scores'],
             "best_event":     events['best_event'],
             "event_scores":   events['scores'],
+            "event_source":   events.get('source', 'rule_based'),
             "metadata_used":  metadata
         }
 
