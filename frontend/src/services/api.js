@@ -29,15 +29,15 @@ export const apiService = {
   },
 
   // ── Predictions / Analysis ──────────────────────────────────────────────────
-  predictMeasurements: async (frontImage, sideImage) => {
-    const formData = new FormData();
-    formData.append('front_image', frontImage);
-    formData.append('side_image', sideImage);
-    const response = await api.post('/predict', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return response.data;
-  },
+  // predictMeasurements: async (frontImage, sideImage) => {
+  //   const formData = new FormData();
+  //   formData.append('front_image', frontImage);
+  //   formData.append('side_image', sideImage);
+  //   const response = await api.post('/predict', formData, {
+  //     headers: { 'Content-Type': 'multipart/form-data' },
+  //   });
+  //   return response.data;
+  // },
 
   previewMask: async (imageFile) => {
     const formData = new FormData();
@@ -54,7 +54,7 @@ export const apiService = {
     formData.append('side_image', sideImage);
     if (weightKg) formData.append('weight_kg', weightKg);
     if (gender)   formData.append('gender', gender);
-    const response = await api.post('/complete-analysis', formData, {
+    const response = await api.post('/predict', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
